@@ -83,34 +83,25 @@
 #### 基本
 |                功能/平台                    |          Mac                |         Windows        |
 |                  ---                       |         ---                 |            ---         |
-|    剪切（未选中文本的情况下，剪切光标所在行）     |    **Cmd + X**               |                       |
-|    复制（未选中文本的情况下，复制光标所在行）     |    **Cmd + C**               |                       |
+|    剪切 (未选中文本的情况下剪切光标所在行)    |    **Cmd + X**               |                       |
+|    复制 (未选中文本的情况下复制光标所在行)     |    **Cmd + C**               |                       |
+|               删除行                        |    **Cmd + Shift + K**        |                       |
+|             下一行插入                       |    **Cmd + Enter**            |                       |
+|             上一行插入                       |    **Cmd + Shift + Enter**    |                       |
+|              减少缩进                        |    **Cmd + [**                 |                      |
+|              增加缩进                        |    **Cmd + ]**                 |                      |
+|       跳转至文件开头                          |    **Cmd + Up**               |                       |
+|       跳转至文件结尾                          |    **Cmd + Down**             |                       |
+|       按屏向上滚动                           |     **Cmd + PgUp**           |                       |
+|       按屏向下滚动                           |     **Cmd + PgDown**         |                       |
 |             向上移动行                       |    **Opt + Up**              |                       |
 |             向下移动行                       |    **Opt + Down**            |                       |
 |             向上复制行(光标在当前行)           |    **Opt + Shift + Up**      |                       |
 |             向下复制行(光标在复制行)           |    **Opt + Shift + Down**    |                       |
-|               删除行                        |    **Cmd + Shift + K**        |                       |
-|             下一行插入                       |    **Cmd + Enter**            |                       |
-|             上一行插入                       |    **Cmd + Shift + Enter**    |                       |
-|           跳转到匹配的括号                    |    **Cmd + Shift + \\**        |                      |
-|              减少缩进                        |    **Cmd + [**                 |                      |
-|              增加缩进                        |    **Cmd + ]**                 |                      |
 |       跳转至行首                             |    **Home**                    |                      |
 |       跳转至行尾                             |    **End**                     |                      |
-|       跳转至文件开头                         |    **Command + Up**             |                      |
-|       跳转至文件结尾                         |    **Command + Down**           |                      |
 |       按行向上滚动                           |     **Ctrl + PgUp**             |                      |
 |       按行向下滚动                           |     **Ctrl + PgDown**           |                      |
-|       按屏向上滚动                           |     **Command + PgUp**          |                      |
-|       按屏向下滚动                           |     **Command + PgDown**        |                      |
-|       折叠代码块                             | **Command + Shift + [**         |                      |
-|       展开代码块                             | **Command + Shift + ]**         |                      |
-|       折叠全部子代码块                        | **Command + K Command + [**     |                      |
-|       展开全部子代码块                        | **Command + K Command + ]**     |                      |
-|       折叠全部代码块                         |     **Command + K Command + 0**  |                      |
-|       展开全部代码块                         |     **Command + K Command + J**  |                      |
-|       添加行注释                            | **Command + K Command + C**      |                      |
-|       移除行注释                            | **Command + K Command + U**      |                      |
-|       添加、移除行注释                       | **Command + /**                  |                      |
+|       添加、移除行注释                       |     **Cmd + /**                  |                      |
 |       添加、移除块注释                       | **Option + Shift + A**           |                      |
-|       自动换行、取消自动换行                  | **Option + Z**                   |                      |
+
