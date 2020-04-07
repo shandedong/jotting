@@ -266,8 +266,130 @@ myModule.add(1, 2);
 如果你熟悉 ECMAScript 6 中的解构赋值[7]，那么可以用更优雅的方式获取 add 函数：
 const { add } = require('./myModule');
 
+#### module
 
+通过 `require` 和 `exports`，我们已经知道了如何导入、导出 Node 模块中的内容，但是你可能还是觉得 Node 模块机制有一丝丝神秘的感觉。接下来，我们将掀开这神秘的面纱，了解一下背后的主角——`module` 模块对象。
 
+我们可以在刚才的 myModule.js 文件的最后加上这一行代码：
 
+```js
+console.log('module myModule:', module);
+```
 
+在 main.js 最后加上：
+
+```js
+console.log('module main:', module);
+```
+
+运行后会打印出来这样的内容（上边是 myModule，下边是 mainModule）:
+
+![myModule](./img/myModule.png)
+![myModule](./img/mainModule.png)
+
+可以看到 module 对象有以下字段：
+
+* `id`：模块的唯一标识符，如果是被运行的主程序（例如 main.js）则为 `.`，如果是被导入的模块（例如 myModule.js）则等同于此文件名（即下面的 `filename` 字段）
+* `path` 和 `filename`：模块所在路径和文件名，没啥好说的
+* `exports`：模块所导出的内容，实际上之前的 exports 对象是指向 module.exports 的引用。例如对于 myModule.js，刚才我们导出了 add 函数，因此出现在了这个 exports 字段里面；而 main.js 没有导出任何内容，因此 exports 字段为空
+* `parent` 和 `children`：用于记录模块之间的导入关系，例如 main.js 中 require 了 myModule.js，那么 main 就是 myModule 的 parent，myModule 就是 main 的 children
+* `loaded`：模块是否被加载，从上图中可以看出只有 children 中列出的模块才会被加载
+* `paths`：这个就是 Node 搜索文件模块的路径列表，Node 会从第一个路径到最后一个路径依次搜索指定的 Node 模块，找到了则导入，找不到就会报错
+
+>提示
+如果你仔细观察，会发现 Node 文件模块查找路径（`module.paths`）的方式其实是这样的：先找当前目录下的 node_modules，没有的话再找上一级目录的 node_modules，还没找到的话就一直向上找，直到根目录下的 node_modules。
+
+#### 深入理解 module.exports
+
+之前我们提到，`exports` 对象本质上是 `module.exports` 的引用。也就是说，下面两行代码是等价的：
+
+```js
+// 导出 add 函数
+exports.add = add;
+
+// 和上面一行代码是一样的
+module.exports.add = add;
+```
+
+实际上还有第二种导出方式，直接把 `add` 函数赋给 `module.exports` 对象：
+
+```js
+module.exports = add;
+```
+
+这样写和第一种导出方式有什么区别呢？`第一种方式`，在 exports 对象上添加一个属性名为 add，该属性的值为 add 函数；`第二种方式`，直接令 exports 对象为 add 函数。可能有点绕，但是请一定要理解这两者的重大区别！
+
+在 require 时，两者的区别就很明显了：
+
+```js
+// 第一种导出方式，需要访问 add 属性获取到 add 函数
+const myModule = require('myModule');
+myModule.add(1, 2);
+
+// 第二种导出方式，可以直接使用 add 函数
+const add = require('myModule');
+add(1, 2);
+```
+
+><span style="font-weight: bold; color: red">警告</span>
+直接写 `exports = add`; 无法导出 add 函数，因为 `exports` 本质上是指向 `module` 的 `exports`属性的引用，直接对 `exports` 赋值只会改变 `exports`，对 `module.exports` 没有影响。如果你觉得难以理解，那我们用 apple 和 price 类比 module 和 exports：
+
+```js
+apple = { price: 1 };   // 想象 apple 就是 module
+
+price = apple.price;    // 想象 price 就是 exports
+
+apple.price = 3;        // 改变了 apple.price
+
+price = 3;              // 只改变了 price，没有改变 apple.price
+
+// 我们只能通过 apple.price = 1 设置 price 属性，而直接对 price 赋值并不能修改 apple.price。
+```
+
+#### 重构 timer 脚本
+
+在聊了这么多关于 Node 模块机制的内容后，是时候回到我们之前的定时器脚本 timer.js 了。我们首先创建一个新的 Node 模块 info.js，用于打印系统信息，代码如下：
+
+```js
+const os = require('os');
+
+function printProgramInfo() {
+  console.log('当前用户', os.userInfo().username);
+  console.log('当前进程 ID', process.pid);
+  console.log('当前脚本路径', __filename);
+}
+
+module.exports = printProgramInfo;
+```
+
+这里我们导入了 Node 内置模块 `os`，并通过 `os.userInfo()` 查询到了系统用户名，接着通过 `module.exports` 导出了 `printProgramInfo` 函数。
+
+然后创建第二个 Node 模块 datetime.js，用于返回当前的时间，代码如下：
+
+```js
+function getCurrentTime() {
+  const time = new Date();
+  return time.toLocaleString();
+}
+
+exports.getCurrentTime = getCurrentTime;
+```
+
+上面的模块中，我们选择了通过 `exports` 导出 `getCurrentTime` 函数。
+
+最后，我们在 `timer.js` 中通过 require 导入刚才两个模块，并分别调用模块中的函数 `printProgramInfo` 和 `getCurrentTime`，代码如下：
+
+```js
+const printProgramInfo = require('./info');
+const datetime = require('./datetime');
+
+setTimeout(() => {
+  console.log('Hello World!');
+}, 3000);
+
+printProgramInfo();
+console.log('当前时间', datetime.getCurrentTime());
+```
+
+再运行一下 timer.js，输出内容应该与之前完全一致。
 
