@@ -393,3 +393,296 @@ console.log('当前时间', datetime.getCurrentTime());
 
 再运行一下 timer.js，输出内容应该与之前完全一致。
 
+## 命令行开发：接受输入参数
+
+Node.js 作为可以在操作系统中直接运行 JavaScript 代码的平台，为前端开发者开启了无限可能，其中就包括一系列用于实现前端自动化工作流的命令行工具，例如 `Grunt`、`Gulp` 还有大名鼎鼎的 `Webpack`。
+
+从这一步开始，我们将把 timer.js 改造成一个命令行应用。具体地，我们希望 timer.js 可以通过命令行参数指定等待的时间（time 选项）和最终输出的信息（message 选项）：
+
+```js
+$ node timer.js --time 5 --message "Hello Tuture"
+```
+
+#### 通过 `process.argv` 读取命令行参数
+
+之前在讲全局对象 process 时提到一个 argv 属性，能够获取命令行参数的数组。创建一个 args.js 文件，代码如下：
+
+```js
+console.log(process.argv);
+```
+
+然后运行以下命令：
+
+```js
+$ node args.js --time 5 --message "Hello Tuture"
+```
+
+输出一个数组：
+
+```js
+[
+  '/usr/local/bin/node',
+  '/Users/zhangshidong/Documents/myProject/personalSummary/node/src/argv',
+  '--time',
+  '5',
+  '--message',
+  'Hello Tuture' 
+]
+```
+
+可以看到，`process.argv` 数组的第 0 个元素是 `node` 的实际路径，第 1 个元素是 args.js 的路径，后面则是输入的所有参数。
+
+#### 实现命令行应用
+
+根据刚才的分析，我们可以非常简单粗暴地获取 `process.argv` 的第 3 个和第 5 个元素，分别可以得到 time 和 message 参数。于是修改 timer.js 的代码如下：
+
+```js
+const printProgramInfo = require('./info');
+const datetime = require('./datetime');
+
+const waitTime = Number(process.argv[3]);
+const message = process.argv[5];
+
+setTimeout(() => {
+  console.log(message);
+}, waitTime * 1000);
+
+printProgramInfo();
+console.log('当前时间', datetime.getCurrentTime());
+```
+
+运行 timer.js，加上刚才说的所有参数：
+
+```js
+$ node timer.js --time 5 --message "Hello Tuture"
+```
+
+等待 5 秒钟后，你就看到了 Hello Tuture 的提示文本！
+
+不过很显然，目前这个版本有很大的问题：输入参数的格式是固定的，很不灵活，比如说调换 time 和 message 的输入顺序就会出错，也不能检查用户是否输入了指定的参数，格式是否正确等等。如果要亲自实现上面所说的功能，那可得花很大的力气，说不定还会有不少 Bug。有没有更好的方案呢？
+
+## npm
+
+#### npm 包括
+
+* npm 命令行工具（安装 node 时也会附带安装）
+* npm 集中式依赖仓库（registry），存放了其他 JavaScript 开发者分享的 npm 包
+* npm 网站，可以搜索需要的 npm 包、管理 npm 帐户等
+
+#### npm 初探
+
+我们首先打开终端（命令行），检查一下 npm 命令是否可用：
+
+```js
+$ npm -v
+6.4.1
+```
+
+然后在当前目录（也就是刚才编辑的 timer.js 所在的文件夹）运行以下命令，把当前项目初始化为 npm 项目:
+
+```js
+$ npm init
+```
+
+这时候 npm 会提一系列问题，你可以一路回车下去，也可以仔细回答，最终会创建一个 package.json 文件。package.json 文件是一个 npm 项目的核心，记录了这个项目所有的关键信息，内容如下：
+
+```js
+{
+  "name": "timer",
+  "version": "1.0.0",
+  "description": "A cool timer",
+  "main": "timer.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
+```
+
+其中大部分字段的含义都很明确，例如 name 项目名称、 version 版本号、description 描述、author 作者等等。
+
+#### 安装 npm 包
+接下来我们将讲解 npm 最最最常用的命令—— `install`。没错，毫不夸张地说，一个 JavaScript 程序员用的最多的 `npm` 命令就是 `npm install`。
+
+在安装我们需要的 npm 包之前，我们需要去探索一下有哪些包可以为我们所用。通常，我们可以在 [npm 官方网站](https://npmjs.com)
+上进行关键词搜索（英文），比如说我们搜 command line：
+
+![commander](./img/commandNpm.png)
+
+出来的第一个结果 commander 就很符合我们的需要，点进去就是安装的说明和使用文档。我们还想要一个“加载中”的动画效果，提高用户的使用体验，试着搜一下 loading 关键词：
+
+![loading](./img/loading.png)
+
+两个都符合我们的需要。现在就安装这两个 npm 包：
+
+```js
+$ npm install commander ora
+```
+
+安装完之后，可以看到 `package.json` 多了一个非常重要的 `dependencies` 字段：
+
+```js
+"dependencies": {
+  "commander": "^5.0.0",
+  "ora": "^4.0.3"
+}
+```
+这个字段中就记录了我们这个项目的`直接依赖`。与`直接依赖`相对的就是`间接依赖`，例如 commander 和 ora 的依赖，我们通常不用关心。
+所有的 npm 包（直接依赖和间接依赖）全部都存放在项目的 `node_modules` 目录中。
+
+>提示
+node_modules 通常有很多的文件，因此不会加入到 Git 版本控制系统中，你从网上下载的 npm 项目一般也只会有 package.json，这时候只需运行 npm install（后面不跟任何内容），就可以下载并安装所有依赖了。
+
+整个`package.json`代码如下所示：
+
+```js
+{
+  "name": "timer",
+  "version": "1.0.0",
+  "description": "A cool timer",
+  "main": "timer.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "commander": "^5.0.0",
+    "ora": "^4.0.3"
+  }
+}
+```
+
+#### 关于版本号
+
+在软件开发中，版本号是一个非常重要的概念，不同版本的软件存在或大或小的差异。npm 采用了语义版本号（Semantic Versioning，简称 semver[14]），具体规定如下：
+
+* 版本格式为：主版本号.次版本号.修订号
+* 主版本号的改变意味着`不兼容的 API 修改`
+* 次版本号的改变意味着做了`向下兼容的功能性新增`
+* 修订号的改变意味着做了`向下兼容的问题修正`
+
+>提示
+`向下兼容`的简单理解就是`功能只增不减`。
+
+因此在 package.json 的 dependencies 字段中，可以通过以下方式指定版本：
+
+* `精确版本`：例如 `1.0.0`，一定只会安装版本为 `1.0.0` 的依赖
+* `锁定主版本和次版本`：可以写成 `1.0`、`1.0.x` 或 `~1.0.0`（ `npm install` 默认采用的形式），那么可能会安装例如 `1.0.8` 的依赖
+* `仅锁定主版本`：可以写成` 1`、`1.x` 或 `1^1.0.0`，那么可能会安装例如 `1.1.0` 的依赖
+* `最新版本`：可以写成 `*` 或 `x`，那么直接安装最新版本`（不推荐）`
+
+你也许注意到了 npm 还创建了一个 package-lock.json，这个文件就是用来`锁定全部直接依赖和间接依赖的精确版本号`，或者说提供了关于 node_modules 目录的精确描述，从而确保在这个项目中开发的所有人都能有完全一致的 npm 依赖。
+
+#### 站在巨人的肩膀上
+
+我们在大致读了一下 commander 和 ora 的文档之后，就可以开始用起来了，修改 timer1.js 代码如下：
+
+```js
+const program = require('commander');
+const ora = require('ora');
+
+const printProgramInfo = require('./myModule/info');
+
+const { getCurrentTime } = require('./myModule/datetime');
+
+program
+  .option('-t, --time <number>', '等待时间 (秒)', 3)
+  .option('-m, --message <string>', '要输出的信息', 'Hello World')
+  .parse(process.argv);
+
+console.log(program);
+
+setTimeout(() => {
+  spinner.stop();
+
+  console.log(program.message);
+}, program.time * 1000);
+
+printProgramInfo();
+
+console.log('当前时间', getCurrentTime());
+
+const spinner = ora('正在加载中，请稍后 ...').start();
+```
+
+这次，我们再次运行 timer.js：
+
+```js
+$ node timer.js --message "hello world" --time 5
+```
+#### 尝鲜 npm scripts
+
+简单地介绍一下 `npm scripts`，也就是 `npm` 脚本。之前在 `package.json` 中提到，有个字段叫 `scripts`，这个字段就定义了全部的 `npm scripts`。我们发现在用 `npm init` 时创建的 `package.json` 文件默认就添加了一个 `test` 脚本：
+
+```js
+"test": "echo \"Error: no test specified\" && exit 1"
+```
+
+那一串命令就是 `test` 脚本将要执行的内容，我们可以通过 `npm test` 命令执行该脚本：
+
+```js
+$ npm test
+
+> timer@1.0.0 test /Users/zhangshidong/Documents/myProject/personalSummary/node/src
+> echo "Error: no test specified" && exit 1
+
+Error: no test specified
+npm ERR! Test failed.  See above for more details.
+```
+在初步体验了 `npm scripts` 之后，我们有必要了解一下 `npm scripts` 分为两大类：
+
+* `预定义脚本`：例如 `test`、`start`、`install`、`publish` 等等，直接通过 npm <scriptName> 运行，例如 npm test，所有[预定义的脚本可查看文档](https://docs.npmjs.com/misc/scripts#description)
+* `自定义脚本`：除了以上自带脚本的其他脚本，需要通过 `npm run <scriptName>` 运行，例如 `npm run custom`
+
+现在就让我们开始为 `timer1` 项目添加两个 `npm scripts`，分别是 `start` 和 `lint`。第一个是预定义的，用于启动我们的 `timer1.js`；第二个是静态代码检查，用于在开发时检查我们的代码。首先安装 `ESLint` npm 包：
+
+```js
+$ npm install eslint --save-dev
+$ # 或者
+$ npm install eslint -D
+```
+注意到我们加了一个 `-D` 或 `--save-dev` 选项，代表 `eslint` 是一个`开发依赖`，在实际项目发布或部署时不需要用到。npm 会把所有开发依赖添加到 `devDependencies` 字段中。然后分别添加 `start` 和 `lint` 脚本，代码如下：
+
+```js
+{
+  "name": "timer1",
+  "version": "1.0.0",
+  "description": "A cool timer1",
+  "main": "timer1.js",
+  "scripts": {
+    "lint": "eslint **/*.js",
+    "start": "node timer1.js -m 'npm start' -t 3",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "commander": "^5.0.0",
+    "ora": "^4.0.3"
+  },
+  "devDependencies": {
+    "eslint": "^6.8.0"
+  }
+}
+```
+`ESLint` 的使用需要一个配置文件，创建 `.eslintrc.js` 文件（注意最前面有一个点），代码如下
+
+```js
+module.exports = {
+    "env": {
+        "es6": true,
+        "node": true,
+    },
+    "extends": "eslint:recommended",
+};
+```
+运行 `npm start`，可以看到成功地运行了我们的 `timer1.js` 脚本；而运行 `npm run lint`，没有输出任何结果（代表静态检查通过）。
+
+`npm scripts` 看上去平淡无奇，但是却能为项目开发提供非常便利的工作流。例如，之前构建一个项目需要非常复杂的命令，但是如果你实现了一个 `build npm` 脚本，那么当你的同事拿到这份代码时，只需简单地执行 npm run build 就可以开始构建，而无需关心背后的技术细节。在后续的 Node.js 或是前端学习中，我们会在实际项目中使用各种 npm scripts 来定义我们的工作流，大家慢慢就会领会到它的强大了。
+
+
+
+
+
