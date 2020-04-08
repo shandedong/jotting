@@ -1,0 +1,20 @@
+{
+  "name": "timer",
+  "version": "1.0.0",
+  "description": "A cool timer",
+  "main": "timer.js",
+  "scripts": {
+    "lint": "eslint **/*.js",
+    "start": "node timer1.js -m 'npm start' -t 3",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "commander": "^5.0.0",
+    "ora": "^4.0.3"
+  },
+  "devDependencies": {
+    "eslint": "^6.8.0"
+  }
+}
