@@ -682,7 +682,58 @@ module.exports = {
 
 `npm scripts` 看上去平淡无奇，但是却能为项目开发提供非常便利的工作流。例如，之前构建一个项目需要非常复杂的命令，但是如果你实现了一个 `build npm` 脚本，那么当你的同事拿到这份代码时，只需简单地执行 npm run build 就可以开始构建，而无需关心背后的技术细节。在后续的 Node.js 或是前端学习中，我们会在实际项目中使用各种 npm scripts 来定义我们的工作流，大家慢慢就会领会到它的强大了。
 
+## 监听 exit 事件
 
+我们简单地感受下 Node 的事件机制。Node 的事件机制是比较复杂的，本次只是对 Node 事件有个初步的了解。
 
+>提示
+如果你有过在网页（或其他用户界面）开发中编写事件处理（例如鼠标点击）的经验，那么你一定会觉得 Node 中处理事件的方式似曾相识而又符合直觉。
 
+我们在前面简单地提了一下回调函数。实际上，回调函数和事件机制共同组成了 `Node` `的异步世界。具体而言，Node` 中的事件都是通过 `events` 核心模块中的 EventEmitter 这个类实现的。`EventEmitter` 包括两个最关键的方法：
+
+* on：用来监听事件的发生
+* emit：用来触发新的事件
+
+请看下面这个代码片段：
+
+```js
+const EventEmitter = require('events').EventEmitter;
+const emitter = new EventEmitter();
+
+// 监听 connect 事件，注册回调函数
+emitter.on('connect', function (username) {
+  console.log(username);
+});
+
+// 触发 connect 事件，并且加上一个参数（即上面的 username）
+emitter.emit('connect', 'hello world');
+```
+
+运行上面的代码，就会输出以下内容：
+
+```html
+hello world
+```
+
+可以说，`Node` 中很多对象都继承自 `EventEmitter`，包括我们熟悉的 `process` 全局对象。在之前的 `timer.js` 脚本中，我们监听 `exit` 事件（即 Node 进程结束），并添加一个自定义的回调函数打印“下次再见”的信息：
+
+```js
+const printProgramInfo = require('./myModule/info');
+
+const { getCurrentTime } = require('./myModule/datetime');
+
+const waitTime = Number(process.argv[3]) || 1000;
+const message = process.argv[5] || 'hello world';
+
+setTimeout(() => {
+  console.log(message);
+}, waitTime * 1000);
+
+process.on('exit', () => {
+  console.log('下次再见~');
+});
+
+printProgramInfo();
+console.log('当前时间', getCurrentTime());
+```
 
