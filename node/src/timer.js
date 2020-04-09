@@ -9,5 +9,9 @@ setTimeout(() => {
   console.log(message);
 }, waitTime * 1000);
 
+process.on('exit', () => {
+  console.log('下次再见~');
+});
+
 printProgramInfo();
 console.log('当前时间', getCurrentTime());
