@@ -1,3 +1,3 @@
-*.js linguist-language=jotting
-*.css linguist-language=jotting
-*.html linguist-language=jotting
+*.js linguist-language=javascript
+*.css linguist-language=javascript
+*.html linguist-language=javascript
